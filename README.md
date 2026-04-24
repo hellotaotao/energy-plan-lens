@@ -1,50 +1,37 @@
-# React + TypeScript + Vite
+# Energy Plan Lens
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Energy Plan Lens is the first product marketing homepage for an Australian electricity plan comparison product.
 
-Currently, two official plugins are available:
+The product direction is simple: instead of estimating from average household usage, Energy Plan Lens will replay a household's real smart meter interval data through retailer tariff formulas to show what each plan would have actually cost.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Homepage Scope
 
-## Expanding the ESLint configuration
+This repository currently contains the product explanation site, not the functional calculator. The page explains:
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- Why average-based comparison sites can miss the real cheapest plan.
+- Who the product is for: smart meter households, solar homes, EV and heat pump owners, renters, homeowners and financially careful families.
+- How interval usage can be priced against flat rate, time-of-use, demand, controlled load, solar feed-in, daily supply charge, seasonal, weekend and weekday tariff rules.
+- How future upload-and-calculate workflows will produce annual total cost, monthly curves, summer and winter winners, bill shock periods and switching savings.
+- Trust, privacy and early access expectations for test data.
 
-- Configure the top-level `parserOptions` property like this:
+## Tech Stack
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- Vite
+- React
+- TypeScript
+- Node's built-in test runner for messaging quality checks
+
+Vitest was considered for the test runner, but the install attempt was blocked by local DNS/network access to `registry.npmjs.org`. The current `npm test` script uses `node --test` so the checks run without adding an unavailable dependency.
+
+## Scripts
+
+```bash
+npm run dev
+npm test
+npm run build
+npm run lint
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## Development Notes
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+The tests in `test/messaging.test.mjs` intentionally check the homepage source for concrete product messaging. They protect against drifting back into generic SaaS copy by verifying the audience, pain points, tariff modelling capabilities, workflow steps and Australian electricity market context.
