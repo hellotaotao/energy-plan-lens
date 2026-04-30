@@ -12,7 +12,7 @@ const assertMentions = (terms, context) => {
 }
 
 test('homepage names the product and Australian market context', () => {
-  assertMentions(['Energy Plan Lens', 'Australia', 'NEM', 'retailers', 'tariff'], 'market positioning')
+  assertMentions(['EnergyLens', 'Australia', 'NEM', 'retailers', 'tariff'], 'market positioning')
 })
 
 test('homepage identifies concrete target users', () => {

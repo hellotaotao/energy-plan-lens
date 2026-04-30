@@ -1,4 +1,7 @@
 import './App.css'
+import { UploadAnalyseSection } from './components/UploadAnalyseSection'
+import { aglSampleUsageSummary } from './domain/sampleUsageSummary'
+import { AGL_THREE_FOR_FREE_ASSUMPTIONS, SIMPLE_FLAT_ASSUMPTIONS } from './domain/tariffs'
 
 type PlanComparison = {
   name: string
@@ -94,7 +97,7 @@ const workflowSteps = [
   {
     step: '03',
     title: 'Replay every interval',
-    copy: 'Energy Plan Lens will replay each interval through each tariff formula instead of estimating from typical usage bands.',
+    copy: 'EnergyLens will replay each interval through each tariff formula instead of estimating from typical usage bands.',
   },
   {
     step: '04',
@@ -144,9 +147,84 @@ const switchingStrategies = [
   'Bill shock periods where a demand spike, feed-in change or tariff reset drove the result.',
 ]
 
+
+const kwhFormatter = new Intl.NumberFormat('en-AU', {
+  maximumFractionDigits: 3,
+  minimumFractionDigits: 0,
+})
+
+const rowFormatter = new Intl.NumberFormat('en-AU')
+
+function formatKwh(kwh: number) {
+  return `${kwhFormatter.format(kwh)} kWh`
+}
+
+function SampleUsageDataSection() {
+  const freeWindow = AGL_THREE_FOR_FREE_ASSUMPTIONS.importRates.find((rate) => rate.centsPerKwh === 0)
+  const sampleMetrics = [
+    { label: 'Usage / import', value: formatKwh(aglSampleUsageSummary.totalImportKwh) },
+    { label: 'Solar / export', value: formatKwh(aglSampleUsageSummary.totalExportKwh) },
+    {
+      label: 'Rows per channel',
+      value: rowFormatter.format(aglSampleUsageSummary.intervalRowsPerChannel),
+    },
+    {
+      label: 'Quality flags',
+      value: `${rowFormatter.format(aglSampleUsageSummary.qualityFlags.A)} A · ${rowFormatter.format(
+        aglSampleUsageSummary.qualityFlags.U,
+      )} U`,
+    },
+  ]
+
+  return (
+    <section className="section-band sample-data-section" id="sample-data">
+      <div className="section-heading">
+        <p className="eyebrow">Real local sample</p>
+        <h2>AGL interval data now feeds the calculator model.</h2>
+        <p>
+          The local file <strong>{aglSampleUsageSummary.fileName}</strong> has been parsed into separate
+          Usage/import and Solar/export series, with quality flags preserved for later filtering.
+        </p>
+      </div>
+
+      <div className="sample-data-grid">
+        {sampleMetrics.map((metric) => (
+          <article className="sample-metric" key={metric.label}>
+            <span>{metric.label}</span>
+            <strong>{metric.value}</strong>
+          </article>
+        ))}
+      </div>
+
+      <div className="sample-warning" role="note">
+        <strong>Timestamp warning:</strong> {aglSampleUsageSummary.warning}
+      </div>
+
+      <div className="tariff-assumption-card">
+        <div>
+          <p className="eyebrow">Calculator assumptions</p>
+          <h3>Configurable flat vs Three for Free style comparison</h3>
+          <p>
+            The domain model includes a simple flat-rate comparator and an AGL Three for Free style tariff with
+            editable daily supply, feed-in credit and import windows.
+          </p>
+        </div>
+        <ul>
+          <li>{SIMPLE_FLAT_ASSUMPTIONS.name}: flat import sanity check.</li>
+          <li>
+            {AGL_THREE_FOR_FREE_ASSUMPTIONS.name}: {freeWindow?.start ?? '12:00'}–{freeWindow?.end ?? '15:00'}
+            import window priced at {freeWindow?.centsPerKwh ?? 0}c/kWh.
+          </li>
+          <li>Exact time-of-use replay requires dated intervals or a user-supplied start datetime.</li>
+        </ul>
+      </div>
+    </section>
+  )
+}
+
 function ProductPreview() {
   return (
-    <section className="product-preview" aria-label="Energy Plan Lens mock dashboard preview">
+    <section className="product-preview" aria-label="EnergyLens mock dashboard preview">
       <div className="preview-header">
         <div>
           <p className="eyebrow">Mock annual replay</p>
@@ -213,13 +291,15 @@ function App() {
   return (
     <main>
       <header className="site-header" aria-label="Primary navigation">
-        <a className="brand" href="#top" aria-label="Energy Plan Lens home">
-          <span className="brand-mark">EPL</span>
-          <span>Energy Plan Lens</span>
+        <a className="brand" href="#top" aria-label="EnergyLens home">
+          <span className="brand-mark">EL</span>
+          <span>EnergyLens</span>
         </a>
         <nav>
           <a href="#problem">Problem</a>
           <a href="#workflow">How it works</a>
+          <a href="#upload-analyse">Upload</a>
+          <a href="#sample-data">Real data</a>
           <a href="#privacy">Privacy</a>
           <a className="nav-cta" href="#early-access">
             Early access
@@ -232,13 +312,13 @@ function App() {
           <p className="eyebrow">Australian electricity plan comparison for smart meter data</p>
           <h1>Replay your real usage through every tariff before you switch.</h1>
           <p className="hero-lede">
-            Energy Plan Lens compares electricity retailers by pricing your actual interval data through
+            EnergyLens compares electricity retailers by pricing your actual interval data through
             each tariff formula. Retailer comparison sites estimate from averages; this shows what you would
             have actually paid in Australia across NEM plans.
           </p>
           <div className="hero-actions">
-            <a className="primary-button" href="#early-access">
-              Join early access
+            <a className="primary-button" href="#upload-analyse">
+              Upload usage file
             </a>
             <a className="secondary-button" href="#workflow">
               See the workflow
@@ -252,6 +332,8 @@ function App() {
         </div>
         <ProductPreview />
       </section>
+
+      <UploadAnalyseSection />
 
       <section className="section-band" id="problem">
         <div className="section-heading">
@@ -292,12 +374,14 @@ function App() {
         </div>
       </section>
 
+      <SampleUsageDataSection />
+
       <section className="split-section">
         <div className="section-heading compact">
           <p className="eyebrow">Tariff modelling</p>
           <h2>Every major rule that changes a household bill.</h2>
           <p>
-            Energy Plan Lens is being shaped to model the details that make Australian electricity plans hard
+            EnergyLens is being shaped to model the details that make Australian electricity plans hard
             to compare by eye.
           </p>
         </div>
@@ -363,7 +447,7 @@ function App() {
           <p className="eyebrow">Trust and privacy</p>
           <h2>Your meter file should be treated like household financial data.</h2>
           <p>
-            Energy Plan Lens will be designed to minimise collection, explain what is uploaded, avoid selling
+            EnergyLens will be designed to minimise collection, explain what is uploaded, avoid selling
             household interval data, and make deletion straightforward. Early test data can be anonymised or
             synthetic while the tariff engine is validated.
           </p>
